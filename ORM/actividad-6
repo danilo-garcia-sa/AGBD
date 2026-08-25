@@ -1,0 +1,34 @@
+from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.orm import DeclarativeBase, Session
+
+class Base(DeclarativeBase):
+    pass
+
+class Producto(Base):
+    __tablename__ = "productos"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    nombre = Column(String, nullable=False)
+    categoria = Column(String, nullable=False)
+    stock = Column(Integer, nullable=False)
+    precio = Column(Integer, nullable=False)
+
+engine = create_engine("sqlite:///:memory:", echo=True)
+Base.metadata.create_all(engine)
+
+with Session(engine) as session:
+    productos_iniciales = [
+        Producto(nombre="Teclado", precio=450, stock=10, categoria="Periféricos"),
+        Producto(nombre="Mouse", precio=300, stock=15, categoria="Periféricos"),
+        Producto(nombre="Monitor", precio=1200, stock=5, categoria="Pantallas"),
+        Producto(nombre="Auriculares", precio=400, stock=8, categoria="Audio"),
+        Producto(nombre="Webcam", precio=600, stock=6, categoria="Cámaras")
+    ]
+    
+    session.add_all(productos_iniciales)
+    session.commit()
+
+    productos_baratos = session.query(Producto).filter(Producto.precio < 500).all()
+
+    print("\n--- RESULTADOS: Productos con precio menor a $500 ---")
+    for producto in productos_baratos:
+        print(f"- {producto.nombre}: ${producto.precio} | Stock: {producto.stock} | Categoría: {producto.categoria}")
